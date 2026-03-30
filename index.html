@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>언버터 마케팅 대시보드</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #FFF8F0;
+      color: #3D2B1F;
+      padding: 24px;
+    }
+
+    /* 상단 헤더 */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .header h1 { font-size: 24px; }
+    .header span { color: #999; font-size: 14px; }
+
+    /* 요약 카드 영역 */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #F0E6D9;
+    }
+    .card .label {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+    .card .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #D4A574;
+    }
+    .card .change {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .up { color: #2ECC71; }
+    .down { color: #E74C3C; }
+
+    /* 2단 레이아웃 */
+    .content {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #F0E6D9;
+    }
+    .panel h2 {
+      font-size: 16px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #F0E6D9;
+    }
+
+    /* 채널 성과 테이블 */
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      font-size: 14px;
+    }
+    th {
+      color: #999;
+      font-weight: 500;
+      border-bottom: 1px solid #F0E6D9;
+    }
+    td { border-bottom: 1px solid #FAF3EC; }
+
+    /* 할일 목록 */
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #FAF3EC;
+      font-size: 14px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.insta { background: #E1306C; }
+    .dot.blog { background: #2DB400; }
+    .dot.youtube { background: #FF0000; }
+    .dot.ad { background: #1877F2; }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 헤더 -->
+  <div class="header">
+    <h1>UnButter 마케팅 대시보드</h1>
+    <span>2026년 3월</span>
+  </div>
+
+  <!-- 요약 카드 -->
+  <div class="summary">
+    <div class="card">
+      <div class="label">이번 달 매출</div>
+      <div class="value">₩2,840,000</div>
+      <div class="change up">▲ 12% vs 지난달</div>
+    </div>
+    <div class="card">
+      <div class="label">광고 지출</div>
+      <div class="value">₩520,000</div>
+      <div class="change down">▲ 8% vs 지난달</div>
+    </div>
+    <div class="card">
+      <div class="label">ROAS</div>
+      <div class="value">5.46</div>
+      <div class="change up">▲ 0.3 vs 지난달</div>
+    </div>
+    <div class="card">
+      <div class="label">인스타 팔로워</div>
+      <div class="value">1,240</div>
+      <div class="change up">▲ 89 이번 달</div>
+    </div>
+  </div>
+
+  <!-- 2단 레이아웃 -->
+  <div class="content">
+
+    <!-- 왼쪽: 채널별 성과 -->
+    <div class="panel">
+      <h2>채널별 성과</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>채널</th>
+            <th>콘텐츠 수</th>
+            <th>도달</th>
+            <th>전환</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>인스타그램 릴스</td>
+            <td>12</td>
+            <td>45,200</td>
+            <td>38</td>
+          </tr>
+          <tr>
+            <td>인스타그램 피드</td>
+            <td>8</td>
+            <td>12,800</td>
+            <td>15</td>
+          </tr>
+          <tr>
+            <td>네이버 블로그</td>
+            <td>15</td>
+            <td>8,400</td>
+            <td>22</td>
+          </tr>
+          <tr>
+            <td>유튜브</td>
+            <td>4</td>
+            <td>3,200</td>
+            <td>8</td>
+          </tr>
+          <tr>
+            <td>메타 광고</td>
+            <td>6</td>
+            <td>92,000</td>
+            <td>64</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 오른쪽: 이번 주 할일 -->
+    <div class="panel">
+      <h2>이번 주 콘텐츠</h2>
+      <div class="todo-item">
+        <div class="dot insta"></div>
+        릴스: 레몬타르트 바디버터 언박싱
+      </div>
+      <div class="todo-item">
+        <div class="dot insta"></div>
+        피드: 봄 루틴 카드뉴스
+      </div>
+      <div class="todo-item">
+        <div class="dot blog"></div>
+        블로그: 바디버터 vs 바디로션 비교
+      </div>
+      <div class="todo-item">
+        <div class="dot youtube"></div>
+        유튜브: 버터 필링 브이로그
+      </div>
+      <div class="todo-item">
+        <div class="dot ad"></div>
+        메타 광고: 4월 신제품 소재 테스트
+      </div>
+      <div class="todo-item">
+        <div class="dot blog"></div>
+        블로그: 봄 향기 추천 TOP5
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
