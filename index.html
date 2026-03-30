@@ -26,7 +26,7 @@
     /* 요약 카드 영역 */
     .summary {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -105,6 +105,38 @@
     .dot.blog { background: #2DB400; }
     .dot.youtube { background: #FF0000; }
     .dot.ad { background: #1877F2; }
+
+    .bar-chart { margin-top: 16px; }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .bar-label {
+      width: 100px;
+      font-size: 13px;
+      color: #666;
+      flex-shrink: 0;
+    }
+    .bar-track {
+      flex: 1;
+      height: 24px;
+      background: #FAF3EC;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: #D4A574;
+      border-radius: 6px;
+    }
+    .bar-value {
+      width: 70px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
@@ -119,23 +151,28 @@
   <div class="summary">
     <div class="card">
       <div class="label">이번 달 매출</div>
-      <div class="value">₩2,840,000</div>
-      <div class="change up">▲ 12% vs 지난달</div>
+      <div class="value">₩3,500,000</div>
+      <div class="change up">▲ 12% vs 지난 달</div>
     </div>
     <div class="card">
       <div class="label">광고 지출</div>
       <div class="value">₩520,000</div>
-      <div class="change down">▲ 8% vs 지난달</div>
+      <div class="change down">▲ 8% vs 지난 달</div>
     </div>
     <div class="card">
       <div class="label">ROAS</div>
       <div class="value">5.46</div>
-      <div class="change up">▲ 0.3 vs 지난달</div>
+      <div class="change up">▲ 0.3 vs 지난 달</div>
     </div>
     <div class="card">
       <div class="label">인스타 팔로워</div>
       <div class="value">1,240</div>
       <div class="change up">▲ 89 이번 달</div>
+    </div>
+    <div class="card">
+      <div class="label">블로그 방문수</div>
+      <div class="value">8,400</div>
+      <div class="change up">▲ 23% vs 지난 달</div>
     </div>
   </div>
 
@@ -187,6 +224,44 @@
           </tr>
         </tbody>
       </table>
+      <h2 style="margin-top:24px">채널별 도달 비교</h2>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <span class="bar-label">메타 광고</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:92%;"></div>
+          </div>
+          <span class="bar-value">92,000</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">인스타 릴스</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:49%;"></div>
+          </div>
+          <span class="bar-value">45,200</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">인스타 피드</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:14%;"></div>
+          </div>
+          <span class="bar-value">12,800</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">블로그</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:9%;"></div>
+          </div>
+          <span class="bar-value">8,400</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">유튜브</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:3%;"></div>
+          </div>
+          <span class="bar-value">3,200</span>
+        </div>
+      </div>
     </div>
 
     <!-- 오른쪽: 이번 주 할일 -->
@@ -215,6 +290,10 @@
       <div class="todo-item">
         <div class="dot blog"></div>
         블로그: 봄 향기 추천 TOP5
+      </div>
+      <div class="todo-item">
+        <div class="dot ad"></div>
+        메타: 레몬타르트 시즌 바디버터 타겟팅 테스트
       </div>
     </div>
 
