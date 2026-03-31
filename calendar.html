@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UnButter 콘텐츠 캘린더</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      background: #FFF8F0;
+      color: #3D2B1F;
+      min-height: 100vh;
+    }
+
+    /* 헤더 */
+    .top-bar {
+      background: white;
+      border-bottom: 1px solid #F0E6D9;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .top-bar h1 { font-size: 22px; color: #3D2B1F; }
+    .top-bar h1 span { color: #D4A574; }
+
+    /* 월 네비게이션 */
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .month-nav .nav-btn {
+      background: #F0E6D9;
+      border: none;
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8B7355;
+      transition: .2s;
+    }
+    .month-nav .nav-btn:hover { background: #D4A574; color: white; }
+    .month-nav .month-label {
+      font-size: 18px;
+      font-weight: 700;
+      color: #3D2B1F;
+      min-width: 140px;
+      text-align: center;
+    }
+    .btn-today {
+      background: none;
+      border: 1px solid #D4A574;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: #D4A574;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-today:hover { background: #D4A574; color: white; }
+
+    .btn-add {
+      background: #D4A574;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-add:hover { background: #c4955f; }
+
+    /* 진행률 */
+    .progress-bar {
+      display: flex;
+      gap: 10px;
+      padding: 16px 24px;
+      overflow-x: auto;
+      flex-wrap: wrap;
+    }
+    .prog-card {
+      background: white;
+      border-radius: 10px;
+      padding: 14px 18px;
+      border: 1px solid #F0E6D9;
+      min-width: 140px;
+      flex: 1;
+    }
+    .prog-card .ch-name {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .prog-card .ch-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .prog-card .prog-nums {
+      font-size: 22px;
+      font-weight: 700;
+      color: #D4A574;
+    }
+    .prog-card .prog-nums small {
+      font-size: 13px;
+      color: #aaa;
+      font-weight: 400;
+    }
+    .prog-track {
+      height: 6px;
+      background: #F0E6D9;
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .3s;
+    }
+
+    /* 필터 */
+    .filter-bar {
+      padding: 0 24px 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-bar label {
+      font-size: 13px;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: white;
+      border: 1px solid #F0E6D9;
+      border-radius: 20px;
+      padding: 6px 14px;
+      transition: .2s;
+      user-select: none;
+    }
+    .filter-bar label:has(input:checked) {
+      border-color: #D4A574;
+      background: #FDF6EE;
+    }
+    .filter-bar input[type="checkbox"] { display: none; }
+    .filter-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* 캘린더 그리드 */
+    .cal-wrap { padding: 0 24px 24px; }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: #E8DDD3;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .cal-head {
+      background: #D4A574;
+      color: white;
+      text-align: center;
+      padding: 10px 4px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .cal-cell {
+      background: white;
+      min-height: 120px;
+      padding: 6px;
+      position: relative;
+      vertical-align: top;
+      transition: background .15s;
+    }
+    .cal-cell.empty { background: #FDFAF6; }
+    .cal-cell.drag-over { background: #FDF3E0; }
+    .cal-cell .day-num {
+      font-size: 13px;
+      font-weight: 600;
+      color: #999;
+      margin-bottom: 4px;
+    }
+    .cal-cell.today .day-num {
+      color: white;
+      background: #D4A574;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cal-cell.sunday .day-num { color: #E74C3C; }
+
+    /* 콘텐츠 카드 */
+    .content-card {
+      border-radius: 6px;
+      padding: 5px 7px;
+      margin-bottom: 3px;
+      font-size: 11px;
+      line-height: 1.3;
+      cursor: grab;
+      border-left: 3px solid;
+      transition: transform .1s, opacity .15s;
+      position: relative;
+    }
+    .content-card:active { cursor: grabbing; }
+    .content-card.dragging { opacity: 0.4; }
+    .content-card:hover {
+      transform: scale(1.03);
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+    .content-card .cc-channel {
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      margin-bottom: 1px;
+    }
+    .content-card .cc-title {
+      font-weight: 500;
+      color: #3D2B1F;
+    }
+    .content-card .cc-status {
+      display: inline-block;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-top: 2px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* 채널별 카드 색상 */
+    .ch-reels { border-left-color: #E1306C; background: #FDF0F4; }
+    .ch-reels .cc-channel { color: #E1306C; }
+    .ch-feed { border-left-color: #833AB4; background: #F8F0FD; }
+    .ch-feed .cc-channel { color: #833AB4; }
+    .ch-blog { border-left-color: #2DB400; background: #F0FDF0; }
+    .ch-blog .cc-channel { color: #2DB400; }
+    .ch-youtube { border-left-color: #FF0000; background: #FDF0F0; }
+    .ch-youtube .cc-channel { color: #FF0000; }
+    .ch-ad { border-left-color: #1877F2; background: #F0F5FD; }
+    .ch-ad .cc-channel { color: #1877F2; }
+
+    /* 링크 표시 */
+    .cc-link {
+      display: inline-block;
+      font-size: 9px;
+      color: #D4A574;
+      text-decoration: none;
+      margin-left: 4px;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+    .cc-link:hover { text-decoration: underline; color: #c4955f; }
+
+    /* 링크 입력 팝업 */
+    .link-popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .link-popup.active { display: flex; }
+    .link-box {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 16px 48px rgba(0,0,0,.18);
+    }
+    .link-box h3 { font-size: 16px; margin-bottom: 6px; }
+    .link-box p { font-size: 13px; color: #999; margin-bottom: 14px; }
+    .link-box input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #E0D6CC;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #FDFAF6;
+      color: #3D2B1F;
+    }
+    .link-box .link-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .link-box .link-btns button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* 상태별 색상 */
+    .st-planning { background: #F0E6D9; color: #8B7355; }
+    .st-producing { background: #FFF3CD; color: #856404; }
+    .st-done { background: #D4EDDA; color: #155724; }
+    .st-uploaded { background: #D1ECF1; color: #0C5460; }
+
+    /* 모달 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,.4);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h2 { font-size: 18px; margin-bottom: 20px; }
+    .modal label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 4px;
+      margin-top: 12px;
+    }
+    .modal input, .modal select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #E0D6CC;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #FDFAF6;
+      color: #3D2B1F;
+    }
+    .date-row {
+      display: flex;
+      gap: 8px;
+    }
+    .date-row input, .date-row select {
+      flex: 1;
+    }
+    .modal-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .modal-btns button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-save { background: #D4A574; color: white; }
+    .btn-save:hover { background: #c4955f; }
+    .btn-cancel { background: #F0E6D9; color: #666; }
+    .btn-cancel:hover { background: #e6d9c9; }
+    .btn-delete { background: #fee; color: #E74C3C; }
+    .btn-delete:hover { background: #fdd; }
+
+    /* 반응형 */
+    @media (max-width: 900px) {
+      .progress-bar { flex-wrap: nowrap; overflow-x: auto; }
+      .prog-card { min-width: 120px; flex: none; }
+      .cal-cell { min-height: 90px; padding: 4px; }
+      .content-card { font-size: 10px; padding: 3px 5px; }
+    }
+    @media (max-width: 600px) {
+      .top-bar { padding: 12px 16px; }
+      .top-bar h1 { font-size: 18px; }
+      .month-nav .month-label { font-size: 15px; min-width: 110px; }
+      .cal-wrap { padding: 0 8px 16px; }
+      .progress-bar { padding: 12px 8px; }
+      .filter-bar { padding: 0 8px 8px; }
+      .cal-cell { min-height: 70px; }
+      .cal-head { font-size: 11px; padding: 6px 2px; }
+      .content-card .cc-title { display: none; }
+      .content-card .cc-channel { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 -->
+  <div class="top-bar">
+    <div>
+      <h1><span>UnButter</span> 콘텐츠 캘린더</h1>
+    </div>
+    <div class="month-nav">
+      <button class="nav-btn" onclick="changeMonth(-1)">&larr;</button>
+      <div class="month-label" id="monthLabel"></div>
+      <button class="nav-btn" onclick="changeMonth(1)">&rarr;</button>
+      <button class="btn-today" onclick="goToday()">오늘</button>
+    </div>
+    <button class="btn-add" onclick="openAddModal()">+ 새 콘텐츠</button>
+  </div>
+
+  <!-- 채널별 진행률 -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- 필터 -->
+  <div class="filter-bar" id="filterBar"></div>
+
+  <!-- 캘린더 -->
+  <div class="cal-wrap">
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <!-- 추가/수정 모달 -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h2 id="modalTitle">새 콘텐츠 추가</h2>
+      <label>날짜</label>
+      <div class="date-row">
+        <input type="number" id="mYear" min="2024" max="2030" placeholder="년">
+        <select id="mMonth">
+          <option value="1">1월</option><option value="2">2월</option>
+          <option value="3">3월</option><option value="4">4월</option>
+          <option value="5">5월</option><option value="6">6월</option>
+          <option value="7">7월</option><option value="8">8월</option>
+          <option value="9">9월</option><option value="10">10월</option>
+          <option value="11">11월</option><option value="12">12월</option>
+        </select>
+        <input type="number" id="mDay" min="1" max="31" placeholder="일">
+      </div>
+      <label>채널</label>
+      <select id="mChannel">
+        <option value="reels">인스타 릴스</option>
+        <option value="feed">인스타 피드</option>
+        <option value="blog">네이버 블로그</option>
+        <option value="youtube">유튜브</option>
+        <option value="ad">메타 광고</option>
+      </select>
+      <label>주제</label>
+      <input type="text" id="mTitle" placeholder="콘텐츠 주제">
+      <label>목적</label>
+      <input type="text" id="mPurpose" placeholder="예: 인지도, 전환, 참여 유도">
+      <label>상태</label>
+      <select id="mStatus">
+        <option value="planning">기획중</option>
+        <option value="producing">제작중</option>
+        <option value="done">완료</option>
+        <option value="uploaded">업로드됨</option>
+      </select>
+      <label>업로드 링크 <span style="font-weight:400;color:#bbb">(선택)</span></label>
+      <input type="url" id="mLink" placeholder="https://...">
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">취소</button>
+        <button class="btn-delete" id="btnDelete" style="display:none" onclick="deleteItem()">삭제</button>
+        <button class="btn-save" onclick="saveItem()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 링크 입력 팝업 (상태 변경 시) -->
+  <div class="link-popup" id="linkPopup">
+    <div class="link-box">
+      <h3>업로드 링크 등록</h3>
+      <p>콘텐츠가 업로드된 URL을 입력하세요. (선택사항)</p>
+      <input type="url" id="lpLink" placeholder="https://...">
+      <div class="link-btns">
+        <button class="btn-cancel" onclick="closeLinkPopup(true)">건너뛰기</button>
+        <button class="btn-save" onclick="saveLinkPopup()">저장</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ── 설정 ──
+const CHANNELS = {
+  reels:   { name: '인스타 릴스', color: '#E1306C', cls: 'ch-reels', goal: 6 },
+  feed:    { name: '인스타 피드', color: '#833AB4', cls: 'ch-feed', goal: 4 },
+  blog:    { name: '네이버 블로그', color: '#2DB400', cls: 'ch-blog', goal: 15 },
+  youtube: { name: '유튜브',     color: '#FF0000', cls: 'ch-youtube', goal: 4 },
+  ad:      { name: '메타 광고',   color: '#1877F2', cls: 'ch-ad', goal: 10 }
+};
+
+const STATUSES = {
+  planning:  { label: '기획중',   cls: 'st-planning' },
+  producing: { label: '제작중',   cls: 'st-producing' },
+  done:      { label: '완료',     cls: 'st-done' },
+  uploaded:  { label: '업로드됨', cls: 'st-uploaded' }
+};
+const STATUS_ORDER = ['planning','producing','done','uploaded'];
+
+const STORAGE_KEY = 'unbutter_calendar_v2';
+
+// ── 초기 데이터 (7월 런칭 전 - 제품 없이 제작 가능한 콘텐츠 중심) ──
+const DEFAULT_DATA = [
+  // 인스타 릴스 6개 — 제품 없이 가능: 브랜드 티저, 성분/원료 소개, 무드, 제조 과정
+  { year:2026, month:4, day:2,  channel:'reels', title:'언버터 브랜드 탄생 스토리 릴스', purpose:'브랜드 인지도', status:'uploaded' },
+  { year:2026, month:4, day:7,  channel:'reels', title:'시어버터 원료 수확 과정 영상', purpose:'원료 신뢰 구축', status:'done' },
+  { year:2026, month:4, day:11, channel:'reels', title:'바디버터 vs 바디로션 차이 30초 정리', purpose:'정보 제공', status:'producing' },
+  { year:2026, month:4, day:16, channel:'reels', title:'"내 피부에 바르는 것의 기준" 브랜드 철학', purpose:'가치관 공감', status:'planning' },
+  { year:2026, month:4, day:22, channel:'reels', title:'봄 건조함 공감 밈 릴스', purpose:'참여/공감 유도', status:'planning' },
+  { year:2026, month:4, day:28, channel:'reels', title:'레몬타르트 향 영감 - 레몬밭 무드필름', purpose:'신제품 기대감', status:'planning' },
+
+  // 인스타 피드 4개 — 브랜드 무드, 성분 인포그래픽, 설문
+  { year:2026, month:4, day:3,  channel:'feed', title:'봄 바디케어 루틴 카드뉴스 (일반 정보)', purpose:'정보 제공/유입', status:'uploaded' },
+  { year:2026, month:4, day:10, channel:'feed', title:'천연 성분 사전 - 시어버터편 인포그래픽', purpose:'원료 신뢰 구축', status:'done' },
+  { year:2026, month:4, day:17, channel:'feed', title:'"당신의 바디케어 고민은?" 설문 카드', purpose:'참여 유도/데이터 수집', status:'producing' },
+  { year:2026, month:4, day:24, channel:'feed', title:'언버터 봄 무드보드 - 레몬타르트 컬러 힌트', purpose:'브랜드 이미지/티저', status:'planning' },
+
+  // 네이버 블로그 15개 — SEO, 바디케어 정보, 브랜드 스토리 (제품 리뷰 없이)
+  { year:2026, month:4, day:1,  channel:'blog', title:'바디버터란? 바디로션과의 차이 총정리', purpose:'SEO/유입', status:'uploaded' },
+  { year:2026, month:4, day:2,  channel:'blog', title:'봄철 피부 건조 원인과 해결법 5가지', purpose:'SEO', status:'uploaded' },
+  { year:2026, month:4, day:4,  channel:'blog', title:'시어버터의 효능과 좋은 시어버터 고르는 법', purpose:'SEO/원료 신뢰', status:'done' },
+  { year:2026, month:4, day:7,  channel:'blog', title:'바디케어 순서 완벽 가이드 (샤워 후 루틴)', purpose:'SEO/정보', status:'done' },
+  { year:2026, month:4, day:9,  channel:'blog', title:'언버터 브랜드 스토리 - 왜 바디버터인가', purpose:'브랜드 신뢰', status:'producing' },
+  { year:2026, month:4, day:11, channel:'blog', title:'화장품 성분 읽는 법 초보 가이드', purpose:'SEO/교육', status:'producing' },
+  { year:2026, month:4, day:14, channel:'blog', title:'봄 향기 트렌드 - 시트러스 & 구르망 계열', purpose:'SEO/트렌드', status:'producing' },
+  { year:2026, month:4, day:16, channel:'blog', title:'민감 피부를 위한 바디케어 성분 체크리스트', purpose:'SEO', status:'planning' },
+  { year:2026, month:4, day:18, channel:'blog', title:'레몬타르트 향의 비밀 - 조향 에세이', purpose:'스토리텔링/티저', status:'planning' },
+  { year:2026, month:4, day:21, channel:'blog', title:'건성 vs 지성 피부 바디케어 다르게 하는 법', purpose:'SEO', status:'planning' },
+  { year:2026, month:4, day:23, channel:'blog', title:'여름 전에 시작하는 보습 관리 (선제 케어)', purpose:'SEO/시즌', status:'planning' },
+  { year:2026, month:4, day:25, channel:'blog', title:'천연 vs 합성 화장품 성분 비교 분석', purpose:'SEO/신뢰', status:'planning' },
+  { year:2026, month:4, day:27, channel:'blog', title:'언버터가 만드는 바디버터 제조 과정 공개', purpose:'브랜드 신뢰/비하인드', status:'planning' },
+  { year:2026, month:4, day:29, channel:'blog', title:'어버이날 선물 추천 - 바디케어 세트 가이드', purpose:'시즌 SEO', status:'planning' },
+  { year:2026, month:4, day:30, channel:'blog', title:'5월 콘텐츠 예고 & 신제품 힌트', purpose:'기대감/CTA', status:'planning' },
+
+  // 유튜브 4개 — 제조 비하인드, 원료 이야기, 브랜드 브이로그
+  { year:2026, month:4, day:5,  channel:'youtube', title:'언버터 작업실 투어 브이로그', purpose:'브랜드 친밀감', status:'done' },
+  { year:2026, month:4, day:12, channel:'youtube', title:'좋은 바디버터의 조건 - 성분 분석 영상', purpose:'교육/신뢰', status:'producing' },
+  { year:2026, month:4, day:19, channel:'youtube', title:'시어버터 원료 이야기 다큐 스타일', purpose:'스토리텔링', status:'planning' },
+  { year:2026, month:4, day:26, channel:'youtube', title:'레몬타르트 바디버터 개발일지 #1', purpose:'신제품 기대감', status:'planning' },
+
+  // 메타 광고 10건 — 브랜드 인지도/사전등록/리드 수집 (제품 판매 광고 아님)
+  { year:2026, month:4, day:1,  channel:'ad', title:'언버터 브랜드 소개 영상 광고', purpose:'브랜드 인지도', status:'uploaded' },
+  { year:2026, month:4, day:3,  channel:'ad', title:'"봄 피부 고민" 공감 광고 소재', purpose:'인지도/관심', status:'uploaded' },
+  { year:2026, month:4, day:6,  channel:'ad', title:'블로그 콘텐츠 유입 트래픽 광고', purpose:'웹사이트 유입', status:'done' },
+  { year:2026, month:4, day:9,  channel:'ad', title:'인스타 팔로워 확보 광고', purpose:'팔로워 성장', status:'producing' },
+  { year:2026, month:4, day:12, channel:'ad', title:'바디케어 관심 타겟 테스트 A', purpose:'타겟 테스트', status:'producing' },
+  { year:2026, month:4, day:15, channel:'ad', title:'뉴스레터 구독 유도 리드 광고', purpose:'리드 수집', status:'planning' },
+  { year:2026, month:4, day:18, channel:'ad', title:'관심사 타겟 테스트 B (뷰티/스킨케어)', purpose:'타겟 최적화', status:'planning' },
+  { year:2026, month:4, day:21, channel:'ad', title:'유사 타겟 확장 캠페인', purpose:'도달 확장', status:'planning' },
+  { year:2026, month:4, day:25, channel:'ad', title:'신제품 사전알림 등록 광고', purpose:'사전등록 리드', status:'planning' },
+  { year:2026, month:4, day:29, channel:'ad', title:'7월 런칭 카운트다운 티저 광고', purpose:'기대감/리드', status:'planning' },
+];
+
+// ── 상태 ──
+let items = [];
+let filters = { reels:true, feed:true, blog:true, youtube:true, ad:true };
+let editingId = null;
+let viewYear = 2026;
+let viewMonth = 4; // 1-based
+let dragItemId = null;
+
+function loadData() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    items = JSON.parse(saved);
+  } else {
+    items = DEFAULT_DATA.map((d, i) => ({ ...d, id: i + 1 }));
+    saveData();
+  }
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+}
+
+function nextId() {
+  return items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
+}
+
+// ── 월 이동 ──
+function changeMonth(delta) {
+  viewMonth += delta;
+  if (viewMonth > 12) { viewMonth = 1; viewYear++; }
+  if (viewMonth < 1) { viewMonth = 12; viewYear--; }
+  render();
+}
+
+function goToday() {
+  const now = new Date();
+  viewYear = now.getFullYear();
+  viewMonth = now.getMonth() + 1;
+  render();
+}
+
+// ── 유틸 ──
+function daysInMonth(y, m) {
+  return new Date(y, m, 0).getDate();
+}
+function firstDow(y, m) {
+  return new Date(y, m - 1, 1).getDay(); // 0=일
+}
+
+// ── 현재 월 아이템 ──
+function monthItems() {
+  return items.filter(i => i.year === viewYear && i.month === viewMonth);
+}
+
+// ── 렌더링 ──
+function render() {
+  document.getElementById('monthLabel').textContent = `${viewYear}년 ${viewMonth}월`;
+  document.title = `UnButter 캘린더 - ${viewYear}년 ${viewMonth}월`;
+  renderProgress();
+  renderFilters();
+  renderCalendar();
+}
+
+function renderProgress() {
+  const bar = document.getElementById('progressBar');
+  const mi = monthItems();
+  let html = '';
+  for (const [key, ch] of Object.entries(CHANNELS)) {
+    const completed = mi.filter(i => i.channel === key && (i.status === 'done' || i.status === 'uploaded')).length;
+    const total = mi.filter(i => i.channel === key).length;
+    const goal = ch.goal;
+    const pct = goal > 0 ? Math.min(100, Math.round(completed / goal * 100)) : 0;
+    html += `
+      <div class="prog-card">
+        <div class="ch-name"><span class="ch-dot" style="background:${ch.color}"></span>${ch.name}</div>
+        <div class="prog-nums">${completed}<small> / ${goal} (총 ${total})</small></div>
+        <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${ch.color}"></div></div>
+      </div>`;
+  }
+  bar.innerHTML = html;
+}
+
+function renderFilters() {
+  const bar = document.getElementById('filterBar');
+  let html = '';
+  for (const [key, ch] of Object.entries(CHANNELS)) {
+    html += `
+      <label>
+        <input type="checkbox" ${filters[key] ? 'checked' : ''} onchange="toggleFilter('${key}')">
+        <span class="filter-dot" style="background:${ch.color}"></span>
+        ${ch.name}
+      </label>`;
+  }
+  bar.innerHTML = html;
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  const dayNames = ['일','월','화','수','목','금','토'];
+  const fDow = firstDow(viewYear, viewMonth);
+  const totalDays = daysInMonth(viewYear, viewMonth);
+  const today = new Date();
+  const isThisMonth = today.getFullYear() === viewYear && today.getMonth() + 1 === viewMonth;
+  const todayDate = isThisMonth ? today.getDate() : -1;
+
+  let html = dayNames.map(d => `<div class="cal-head">${d}</div>`).join('');
+
+  // 빈 칸
+  for (let i = 0; i < fDow; i++) {
+    html += '<div class="cal-cell empty"></div>';
+  }
+
+  for (let d = 1; d <= totalDays; d++) {
+    const dow = (fDow + d - 1) % 7;
+    const isSun = dow === 0;
+    const isToday = d === todayDate;
+    let cls = 'cal-cell';
+    if (isSun) cls += ' sunday';
+    if (isToday) cls += ' today';
+
+    const dayItems = items
+      .filter(i => i.year === viewYear && i.month === viewMonth && i.day === d && filters[i.channel])
+      .sort((a, b) => Object.keys(CHANNELS).indexOf(a.channel) - Object.keys(CHANNELS).indexOf(b.channel));
+
+    let cards = '';
+    for (const item of dayItems) {
+      const ch = CHANNELS[item.channel];
+      const st = STATUSES[item.status];
+      const linkIcon = item.link
+        ? `<a class="cc-link" href="${escHtml(item.link)}" target="_blank" onclick="event.stopPropagation()" title="${escHtml(item.link)}">&#128279; 링크</a>`
+        : '';
+      cards += `
+        <div class="content-card ${ch.cls}" draggable="true"
+             data-id="${item.id}"
+             ondragstart="onDragStart(event, ${item.id})"
+             ondragend="onDragEnd(event)"
+             onclick="openEditModal(${item.id})">
+          <div class="cc-channel">${ch.name}</div>
+          <div class="cc-title">${escHtml(item.title)}</div>
+          <span class="cc-status ${st.cls}" onclick="event.stopPropagation();cycleStatus(${item.id})">${st.label}</span>${linkIcon}
+        </div>`;
+    }
+
+    html += `<div class="${cls}" data-day="${d}"
+                  ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event, ${d})">
+               <div class="day-num">${d}</div>${cards}
+             </div>`;
+  }
+
+  // 남은 빈 칸
+  const totalCells = fDow + totalDays;
+  const remainder = totalCells % 7;
+  if (remainder > 0) {
+    for (let i = 0; i < 7 - remainder; i++) {
+      html += '<div class="cal-cell empty"></div>';
+    }
+  }
+
+  grid.innerHTML = html;
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ── 드래그 앤 드롭 ──
+function onDragStart(e, id) {
+  dragItemId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`.content-card[data-id="${id}"]`);
+    if (el) el.classList.add('dragging');
+  });
+}
+
+function onDragEnd(e) {
+  document.querySelectorAll('.content-card.dragging').forEach(el => el.classList.remove('dragging'));
+  document.querySelectorAll('.cal-cell.drag-over').forEach(el => el.classList.remove('drag-over'));
+  dragItemId = null;
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const cell = e.currentTarget;
+  if (cell.dataset.day) {
+    cell.classList.add('drag-over');
+  }
+}
+
+function onDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function onDrop(e, day) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (dragItemId === null) return;
+  const item = items.find(i => i.id === dragItemId);
+  if (!item) return;
+  // 같은 달 내에서만 날짜 이동
+  item.year = viewYear;
+  item.month = viewMonth;
+  item.day = day;
+  dragItemId = null;
+  saveData();
+  render();
+}
+
+// ── 필터 ──
+function toggleFilter(ch) {
+  filters[ch] = !filters[ch];
+  render();
+}
+
+// ── 상태 순환 ──
+let linkPopupItemId = null;
+
+function cycleStatus(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const idx = STATUS_ORDER.indexOf(item.status);
+  const nextStatus = STATUS_ORDER[(idx + 1) % STATUS_ORDER.length];
+  item.status = nextStatus;
+  saveData();
+
+  // "업로드됨"으로 변경 시 링크 입력 팝업 표시
+  if (nextStatus === 'uploaded') {
+    linkPopupItemId = id;
+    document.getElementById('lpLink').value = item.link || '';
+    document.getElementById('linkPopup').classList.add('active');
+  }
+
+  render();
+}
+
+function saveLinkPopup() {
+  if (linkPopupItemId !== null) {
+    const item = items.find(i => i.id === linkPopupItemId);
+    const link = document.getElementById('lpLink').value.trim();
+    if (item && link) {
+      item.link = link;
+      saveData();
+      render();
+    }
+  }
+  closeLinkPopup(false);
+}
+
+function closeLinkPopup(skip) {
+  document.getElementById('linkPopup').classList.remove('active');
+  linkPopupItemId = null;
+}
+
+document.getElementById('linkPopup').addEventListener('click', function(e) {
+  if (e.target === this) closeLinkPopup(true);
+});
+
+// ── 모달 ──
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = '새 콘텐츠 추가';
+  document.getElementById('mYear').value = viewYear;
+  document.getElementById('mMonth').value = viewMonth;
+  document.getElementById('mDay').value = '';
+  document.getElementById('mChannel').value = 'reels';
+  document.getElementById('mTitle').value = '';
+  document.getElementById('mPurpose').value = '';
+  document.getElementById('mStatus').value = 'planning';
+  document.getElementById('mLink').value = '';
+  document.getElementById('btnDelete').style.display = 'none';
+  document.getElementById('modal').classList.add('active');
+}
+
+function openEditModal(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = '콘텐츠 수정';
+  document.getElementById('mYear').value = item.year;
+  document.getElementById('mMonth').value = item.month;
+  document.getElementById('mDay').value = item.day;
+  document.getElementById('mChannel').value = item.channel;
+  document.getElementById('mTitle').value = item.title;
+  document.getElementById('mPurpose').value = item.purpose;
+  document.getElementById('mStatus').value = item.status;
+  document.getElementById('mLink').value = item.link || '';
+  document.getElementById('btnDelete').style.display = 'block';
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+  editingId = null;
+}
+
+function saveItem() {
+  const year = parseInt(document.getElementById('mYear').value);
+  const month = parseInt(document.getElementById('mMonth').value);
+  const day = parseInt(document.getElementById('mDay').value);
+  const channel = document.getElementById('mChannel').value;
+  const title = document.getElementById('mTitle').value.trim();
+  const purpose = document.getElementById('mPurpose').value.trim();
+  const status = document.getElementById('mStatus').value;
+  const link = document.getElementById('mLink').value.trim();
+
+  const maxDay = daysInMonth(year, month);
+  if (!year || !month || !day || day < 1 || day > maxDay || !title) {
+    alert(`유효한 날짜(1~${maxDay})와 주제를 입력해주세요.`);
+    return;
+  }
+
+  if (editingId !== null) {
+    const item = items.find(i => i.id === editingId);
+    if (item) {
+      item.year = year;
+      item.month = month;
+      item.day = day;
+      item.channel = channel;
+      item.title = title;
+      item.purpose = purpose;
+      item.status = status;
+      item.link = link || '';
+    }
+  } else {
+    items.push({ id: nextId(), year, month, day, channel, title, purpose, status, link: link || '' });
+  }
+
+  saveData();
+  closeModal();
+  // 수정한 콘텐츠가 다른 달로 이동했으면 해당 월로 이동
+  if (year !== viewYear || month !== viewMonth) {
+    viewYear = year;
+    viewMonth = month;
+  }
+  render();
+}
+
+function deleteItem() {
+  if (editingId === null) return;
+  if (!confirm('이 콘텐츠를 삭제하시겠습니까?')) return;
+  items = items.filter(i => i.id !== editingId);
+  saveData();
+  closeModal();
+  render();
+}
+
+// 모달 바깥 클릭 닫기
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// 키보드 네비게이션
+document.addEventListener('keydown', function(e) {
+  if (document.getElementById('modal').classList.contains('active')) {
+    if (e.key === 'Escape') closeModal();
+    return;
+  }
+  if (e.key === 'ArrowLeft') changeMonth(-1);
+  if (e.key === 'ArrowRight') changeMonth(1);
+});
+
+// ── 마이그레이션: 기존 v1 데이터에 year/month 없으면 보정 ──
+function migrateData() {
+  let changed = false;
+  for (const item of items) {
+    if (!item.year) { item.year = 2026; changed = true; }
+    if (!item.month) { item.month = 4; changed = true; }
+  }
+  if (changed) saveData();
+}
+
+// ── 초기화 ──
+loadData();
+migrateData();
+render();
+</script>
+</body>
+</html>
